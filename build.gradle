@@ -1,0 +1,237 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath group: "net.minecraftforge.gradle", name: "ForgeGradle", version: "3.+", changing: true
+    }
+}
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
+apply plugin: "net.minecraftforge.gradle"
+apply plugin: "maven"
+apply plugin: "java"
+apply plugin: "idea"
+
+version = "${minecraft_version}-" + getVersion()
+group = "${group}"
+archivesBaseName = "${mod_name}"
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        name = "forge"
+        url = "http://files.minecraftforge.net/maven"
+    }
+    maven {
+        name = "PrettyPipes"
+        url = "https://maven.ellpeck.de/"
+    }
+    maven {
+        name = "Registrate"
+        url = "http://maven.tterrag.com/"
+    }
+    maven {
+        name = "JEI"
+        url = "https://dvs1.progwml6.com/files/maven"
+    }
+    maven {
+        name = "FTB Gui"
+        url = "https://maven.latmod.com/"
+    }
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+sourceSets {
+    main {
+        resources {
+            include '**/**'
+            exclude '**/*.bbmodel'
+            srcDirs += "$rootDir/src/generated/resources"
+            exclude '.cache'
+        }
+    }
+}
+
+def version_properties = [
+        "version"       : version,
+        "mc_version"    : minecraft_version,
+        "forge_version" : min_forge_version,
+        "loader_version": loader_version
+]
+
+processResources {
+    outputs.upToDateWhen { false }
+    from(sourceSets.main.resources) {
+        include "META-INF/mods.toml"
+        expand version_properties
+    }
+    into "$buildDir/resources/main/"
+}
+
+minecraft {
+    mappings channel: "snapshot", version: "${mappings_version}"
+
+    runs {
+        client {
+            workingDirectory project.file("run")
+
+            properties 'mixin.env.disableRefMap': 'true'
+
+            mods {
+                prolificprettypipes {
+                    source(sourceSets.main)
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file("run")
+
+            properties 'mixin.env.disableRefMap': 'true'
+
+            mods {
+                prolificprettypipes {
+                    source(sourceSets.main)
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file("run")
+
+            environment 'target', 'fmluserdevdata'
+
+            properties 'fml.earlyprogresswindow': 'false'
+            properties 'mixin.env.disableRefMap': 'true'
+
+            args '--all', '--output', file('src/generated/resources/'),
+                    '--reports',
+                    '--mod', 'prolificprettypipes', '--existing', sourceSets.main.resources.srcDirs[0]
+
+            mods {
+                prolificprettypipes {
+                    source(sourceSets.main)
+                }
+            }
+        }
+    }
+}
+
+configurations {
+    shade
+}
+
+shadowJar {
+    configurations = [project.configurations.shade]
+    relocate 'com.tterrag.registrate', 'xyz.brassgoggledcoders.prolificprettypipes.repack.registrate'
+    classifier ''
+}
+
+reobf {
+    shadowJar {}
+}
+
+build.dependsOn shadowJar
+build.dependsOn reobfShadowJar
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    
+    compile fg.deobf("de.ellpeck.prettypipes:PrettyPipes:${pretty_pipes_version}")
+
+    def registrate = "com.tterrag.registrate:Registrate:MC1.16.2-${registrate_version}"
+    implementation fg.deobf(registrate)
+    shade registrate
+
+    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
+    runtimeOnly fg.deobf("com.feed_the_beast.mods:ftb-gui-library:1.0.0.18")
+
+    testImplementation('org.junit.jupiter:junit-jupiter:5.6.1')
+}
+
+task srcJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = "sources"
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = "javadoc"
+    from javadoc.destinationDir
+}
+
+jar {
+    classifier = "nodep"
+    manifest {
+        attributes([
+                "Specification-Title"     : "${title}",
+                "Specification-Vendor"    : "${team}",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : "${version}",
+                "Implementation-Vendor"   : "${team}",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+artifacts {
+    archives javadocJar
+    archives srcJar
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file://" + (System.getenv("local_maven") != null ? System.getenv("local_maven") : System.getenv("bamboo_local_maven")))
+        }
+    }
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+String getVersion() {
+    String version = "${mod_version}"
+    String branch = project.hasProperty("branch") ? project.branch : ""
+
+    if (branch != "") {
+        version += "-" + branch
+
+        String buildNumber = getBuildNumber()
+        if (buildNumber != "") {
+            version += "." + buildNumber
+        }
+    }
+
+    return version
+}
+
+static String getBuildNumber() {
+    String buildNumber = System.getenv("BUILD_NUMBER") != null ? System.getenv("BUILD_NUMBER") : ""
+    if (buildNumber == "") {
+        buildNumber = System.getenv("bamboo_buildNumber") != null ? System.getenv("bamboo_buildNumber") : ""
+    }
+    return buildNumber
+}
+
+gradle.projectsEvaluated {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xmaxerrs" << "10000"
+    }
+}
