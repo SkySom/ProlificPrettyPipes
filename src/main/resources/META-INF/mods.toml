@@ -1,0 +1,12 @@
+modLoader="javafml"
+loaderVersion="[${loader_version},)"
+issueTrackerURL="https://github.com/Brass-Goggled-Coders/Transport/issues"
+license="MIT"
+
+[[mods]]
+    modId="prolific_pretty_pipes"
+    version="${version}"
+    displayName="Prolific Pretty Pipes"
+    authors="SkySom"
+    description='''
+    '''

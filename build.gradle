@@ -152,7 +152,7 @@ build.dependsOn reobfShadowJar
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    
+
     compile fg.deobf("de.ellpeck.prettypipes:PrettyPipes:${pretty_pipes_version}")
 
     def registrate = "com.tterrag.registrate:Registrate:MC1.16.2-${registrate_version}"

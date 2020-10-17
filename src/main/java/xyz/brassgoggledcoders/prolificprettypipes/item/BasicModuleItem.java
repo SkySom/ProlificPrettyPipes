@@ -8,17 +8,14 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
-import xyz.brassgoggledcoders.prolificprettypipes.pipe.IFluidModule;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class FluidModuleItem extends Item implements IFluidModule {
-    public FluidModuleItem(Properties properties) {
+public class BasicModuleItem extends Item implements IModule {
+    public BasicModuleItem(Properties properties) {
         super(properties);
     }
 
@@ -33,7 +30,7 @@ public class FluidModuleItem extends Item implements IFluidModule {
     }
 
     @Override
-    public boolean canAcceptItem(ItemStack moduleStack, PipeTileEntity pipeTileEntity, ItemStack itemStack1) {
+    public boolean canAcceptItem(ItemStack moduleStack, PipeTileEntity pipeTileEntity, ItemStack itemStack) {
         return false;
     }
 
@@ -88,15 +85,5 @@ public class FluidModuleItem extends Item implements IFluidModule {
     public ItemStack craft(ItemStack moduleStack, PipeTileEntity pipeTileEntity, BlockPos blockPos,
                            Consumer<ItemStack> consumer, ItemStack itemStack) {
         return itemStack;
-    }
-
-    @Override
-    public boolean canAcceptFluid(ItemStack moduleStack, PipeTileEntity pipeTileEntity, FluidStack fluidStack) {
-        return false;
-    }
-
-    @Override
-    public int getMaxInsertionAmount(ItemStack moduleStack, PipeTileEntity pipeTileEntity, FluidStack fluidStack, IFluidHandler fluidHandler) {
-        return 0;
     }
 }

@@ -5,6 +5,8 @@ import de.ellpeck.prettypipes.Registry;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.NonNullLazy;
 import net.minecraftforge.fml.common.Mod;
+import xyz.brassgoggledcoders.prolificprettypipes.content.ProlificBlocks;
+import xyz.brassgoggledcoders.prolificprettypipes.content.ProlificItems;
 
 @Mod(ProlificPrettyPipes.ID)
 public class ProlificPrettyPipes {
@@ -15,7 +17,8 @@ public class ProlificPrettyPipes {
     );
 
     public ProlificPrettyPipes() {
-
+        ProlificItems.setup();
+        ProlificBlocks.setup();
     }
 
     public static ResourceLocation rl(String path) {
