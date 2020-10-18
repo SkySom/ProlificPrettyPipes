@@ -1,5 +1,6 @@
 package xyz.brassgoggledcoders.prolificprettypipes.pipe;
 
+import com.google.common.collect.Lists;
 import de.ellpeck.prettypipes.Utility;
 import de.ellpeck.prettypipes.network.PipeItem;
 import de.ellpeck.prettypipes.network.PipeNetwork;
@@ -19,12 +20,14 @@ public class PipeTypePipeItem<VALUE, HANDLER> extends PipeItem {
         super(pipeType.getType(), pipeType.getStackFrom(value), speed);
         this.pipeType = pipeType;
         this.value = value;
+        this.path = Lists.newArrayList();
     }
 
     public PipeTypePipeItem(IPipeType<VALUE, HANDLER> pipeType, CompoundNBT compoundNBT) {
-        super(pipeType.getType(), ItemStack.EMPTY, 0.0F);
+        super(pipeType.getType(), pipeType.getStackFrom(pipeType.getValueFromNBT(compoundNBT.getCompound("value"))), 0.0F);
         this.pipeType = pipeType;
         this.value = pipeType.getValueFromNBT(compoundNBT.getCompound("value"));
+        this.path = Lists.newArrayList();
         this.deserializeNBT(compoundNBT);
     }
 
