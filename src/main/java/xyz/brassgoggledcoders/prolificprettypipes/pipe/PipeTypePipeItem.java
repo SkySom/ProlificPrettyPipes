@@ -5,6 +5,7 @@ import de.ellpeck.prettypipes.network.PipeItem;
 import de.ellpeck.prettypipes.network.PipeNetwork;
 import de.ellpeck.prettypipes.pipe.PipeTileEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 
@@ -15,9 +16,16 @@ public class PipeTypePipeItem<VALUE, HANDLER> extends PipeItem {
     private final VALUE value;
 
     public PipeTypePipeItem(IPipeType<VALUE, HANDLER> pipeType, VALUE value, float speed) {
-        super(pipeType.getStackFrom(value), speed);
+        super(pipeType.getType(), pipeType.getStackFrom(value), speed);
         this.pipeType = pipeType;
         this.value = value;
+    }
+
+    public PipeTypePipeItem(IPipeType<VALUE, HANDLER> pipeType, CompoundNBT compoundNBT) {
+        super(pipeType.getType(), ItemStack.EMPTY, 0.0F);
+        this.pipeType = pipeType;
+        this.value = pipeType.getValueFromNBT(compoundNBT.getCompound("value"));
+        this.deserializeNBT(compoundNBT);
     }
 
     public IPipeType<VALUE, HANDLER> getPipeType() {
@@ -66,7 +74,6 @@ public class PipeTypePipeItem<VALUE, HANDLER> extends PipeItem {
             } else {
                 this.drop(currPipe.getWorld(), this.stack);
             }
-
         }
     }
 }

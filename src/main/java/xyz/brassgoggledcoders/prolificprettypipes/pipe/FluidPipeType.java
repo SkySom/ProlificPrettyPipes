@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 
 public class FluidPipeType implements IPipeType<FluidStack, IFluidHandler> {
     public static final FluidPipeType INSTANCE = setup();
+    public static final ResourceLocation TYPE = ProlificPrettyPipes.rl("fluid");
 
     @Nullable
     @Override
@@ -53,13 +54,13 @@ public class FluidPipeType implements IPipeType<FluidStack, IFluidHandler> {
 
     @Override
     public PipeTypePipeItem<FluidStack, IFluidHandler> getPipeItem(FluidStack fluidStack, float speed) {
-        return new PipeTypePipeItem<>(fluidStack, speed);
+        return new PipeTypePipeItem<>(this, fluidStack, speed);
     }
 
     @Override
     public PipeTypePipeItem<FluidStack, IFluidHandler> getPipeItem(ResourceLocation resourceLocation,
                                                                    CompoundNBT compoundNBT) {
-        return new PipeTypePipeItem<>(null, 0.0F);
+        return new PipeTypePipeItem<>(this, compoundNBT);
     }
 
     @Override
@@ -87,9 +88,19 @@ public class FluidPipeType implements IPipeType<FluidStack, IFluidHandler> {
         return 1000000;
     }
 
+    @Override
+    public ResourceLocation getType() {
+        return TYPE;
+    }
+
+    @Override
+    public FluidStack getValueFromNBT(CompoundNBT nbt) {
+        return FluidStack.loadFluidStackFromNBT(nbt);
+    }
+
     private static FluidPipeType setup() {
         FluidPipeType fluidPipeType = new FluidPipeType();
-        PipeItem.TYPES.put(ProlificPrettyPipes.rl("fluid"), fluidPipeType::getPipeItem);
+        PipeItem.TYPES.put(fluidPipeType.getType(), fluidPipeType::getPipeItem);
         return fluidPipeType;
     }
 }

@@ -84,4 +84,8 @@ public interface IPipeType<VALUE, HANDLER> {
     }
 
     int getTotalSpace(HANDLER handler, VALUE value);
+
+    ResourceLocation getType();
+
+    VALUE getValueFromNBT(CompoundNBT nbt);
 }
