@@ -13,24 +13,29 @@ import java.util.function.Function;
 
 public class PipeNetworkExpansions {
     @SuppressWarnings("deprecation")
-    public static <TYPE extends IPipeType<VALUE, HANDLER, MODULE, PIPE>, VALUE, HANDLER, MODULE extends IExtendedModule<VALUE, HANDLER>,
-            PIPE extends PipeItem> VALUE route(PipeNetwork pipeNetwork, World world, TYPE type, BlockPos startPipePos,
-                                               BlockPos startInventory, VALUE value, boolean preventOversending) {
-        if (!pipeNetwork.isNode(startPipePos))
+    public static <TYPE extends IPipeType<VALUE, HANDLER>, VALUE, HANDLER> VALUE route(
+            PipeNetwork pipeNetwork, World world, TYPE type, BlockPos startPipePos, BlockPos startInventory,
+            VALUE value, boolean preventOversending) {
+        if (!pipeNetwork.isNode(startPipePos)) {
             return value;
-        if (!world.isBlockLoaded(startPipePos))
+        }
+        if (!world.isBlockLoaded(startPipePos)) {
             return value;
+        }
         PipeTileEntity startPipe = pipeNetwork.getPipe(startPipePos);
-        if (startPipe == null)
+        if (startPipe == null) {
             return value;
+        }
         pipeNetwork.startProfile("find_destination");
         for (BlockPos pipePos : pipeNetwork.getOrderedNetworkNodes(startPipePos)) {
-            if (!world.isBlockLoaded(pipePos))
+            if (!world.isBlockLoaded(pipePos)) {
                 continue;
+            }
             PipeTileEntity pipe = pipeNetwork.getPipe(pipePos);
             Pair<BlockPos, VALUE> dest = getAvailableDestination(pipe, type, value, false, preventOversending);
-            if (dest == null || dest.getLeft().equals(startInventory))
+            if (dest == null || dest.getLeft().equals(startInventory)) {
                 continue;
+            }
             Function<Float, PipeItem> sup = speed -> type.getPipeItem(dest.getRight(), speed);
             if (pipeNetwork.routeItemToLocation(startPipePos, startInventory, pipe.getPos(), dest.getLeft(),
                     type.getStackFrom(dest.getRight()), sup)) {
@@ -44,8 +49,7 @@ public class PipeNetworkExpansions {
         return value;
     }
 
-    public static <TYPE extends IPipeType<VALUE, HANDLER, MODULE, PIPE>, VALUE, HANDLER, MODULE extends IExtendedModule<VALUE, HANDLER>,
-            PIPE extends PipeItem> Pair<BlockPos, VALUE> getAvailableDestination(
+    public static <TYPE extends IPipeType<VALUE, HANDLER>, VALUE, HANDLER> Pair<BlockPos, VALUE> getAvailableDestination(
             PipeTileEntity pipeTileEntity, TYPE type, VALUE input, boolean force, boolean preventOversending) {
         if (!pipeTileEntity.canWork())
             return null;

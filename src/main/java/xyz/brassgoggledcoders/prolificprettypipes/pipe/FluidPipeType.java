@@ -15,12 +15,12 @@ import xyz.brassgoggledcoders.prolificprettypipes.content.ProlificItems;
 
 import javax.annotation.Nullable;
 
-public class FluidPipeType implements IPipeType<FluidStack, IFluidHandler, IFluidModule, FluidPipeItem> {
+public class FluidPipeType implements IPipeType<FluidStack, IFluidHandler> {
     public static final FluidPipeType INSTANCE = setup();
 
     @Nullable
     @Override
-    public IFluidModule getModuleExtension(IModule module) {
+    public IExtendedModule<FluidStack, IFluidHandler> getModuleExtension(IModule module) {
         if (module instanceof IFluidModule) {
             return (IFluidModule) module;
         }
@@ -52,13 +52,14 @@ public class FluidPipeType implements IPipeType<FluidStack, IFluidHandler, IFlui
     }
 
     @Override
-    public FluidPipeItem getPipeItem(FluidStack fluidStack, float speed) {
-        return new FluidPipeItem(fluidStack, speed);
+    public PipeTypePipeItem<FluidStack, IFluidHandler> getPipeItem(FluidStack fluidStack, float speed) {
+        return new PipeTypePipeItem<>(fluidStack, speed);
     }
 
     @Override
-    public FluidPipeItem getPipeItem(ResourceLocation resourceLocation, CompoundNBT compoundNBT) {
-        return new FluidPipeItem(null, 0.0F);
+    public PipeTypePipeItem<FluidStack, IFluidHandler> getPipeItem(ResourceLocation resourceLocation,
+                                                                   CompoundNBT compoundNBT) {
+        return new PipeTypePipeItem<>(null, 0.0F);
     }
 
     @Override

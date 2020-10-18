@@ -2,16 +2,13 @@ package xyz.brassgoggledcoders.prolificprettypipes.item;
 
 import de.ellpeck.prettypipes.items.IModule;
 import de.ellpeck.prettypipes.items.ModuleTier;
-import de.ellpeck.prettypipes.network.PipeItem;
 import de.ellpeck.prettypipes.network.PipeNetwork;
 import de.ellpeck.prettypipes.pipe.PipeTileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
-import xyz.brassgoggledcoders.prolificprettypipes.pipe.IExtendedModule;
 import xyz.brassgoggledcoders.prolificprettypipes.pipe.IPipeType;
 
-public class BasicExtractionModule<TYPE extends IPipeType<VALUE, HANDLER, MODULE, PIPE>, VALUE, HANDLER,
-        MODULE extends IExtendedModule<VALUE, HANDLER>, PIPE extends PipeItem> extends BasicModuleItem {
+public class BasicExtractionModule<TYPE extends IPipeType<VALUE, HANDLER>, VALUE, HANDLER> extends BasicModuleItem {
     private final TYPE pipeType;
     private final int maxExtraction;
     private final int speed;

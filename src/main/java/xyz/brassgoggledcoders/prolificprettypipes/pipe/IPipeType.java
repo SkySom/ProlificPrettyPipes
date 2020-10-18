@@ -1,7 +1,6 @@
 package xyz.brassgoggledcoders.prolificprettypipes.pipe;
 
 import de.ellpeck.prettypipes.items.IModule;
-import de.ellpeck.prettypipes.network.PipeItem;
 import de.ellpeck.prettypipes.network.PipeNetwork;
 import de.ellpeck.prettypipes.pipe.PipeTileEntity;
 import net.minecraft.item.ItemStack;
@@ -14,9 +13,9 @@ import net.minecraftforge.common.capabilities.Capability;
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
-public interface IPipeType<VALUE, HANDLER, MODULE extends IExtendedModule<VALUE, HANDLER>, PIPE extends PipeItem> {
+public interface IPipeType<VALUE, HANDLER> {
     @Nullable
-    MODULE getModuleExtension(IModule module);
+    IExtendedModule<VALUE, HANDLER> getModuleExtension(IModule module);
 
     ItemStack getStackFrom(VALUE value);
 
@@ -32,9 +31,10 @@ public interface IPipeType<VALUE, HANDLER, MODULE extends IExtendedModule<VALUE,
 
     Capability<HANDLER> getCapability();
 
-    PIPE getPipeItem(VALUE value, float speed);
+    PipeTypePipeItem<VALUE, HANDLER> getPipeItem(VALUE value, float speed);
 
-    PIPE getPipeItem(ResourceLocation resourceLocation, CompoundNBT compoundNBT);
+    PipeTypePipeItem<VALUE, HANDLER> getPipeItem(ResourceLocation resourceLocation,
+                                                 CompoundNBT compoundNBT);
 
     default void route(PipeNetwork pipeNetwork, World world, HANDLER handler, Predicate<VALUE> filterCheck, BlockPos pipePosition,
                        BlockPos handlerPosition, int maxExtraction, boolean preventOversending) {
@@ -43,7 +43,7 @@ public interface IPipeType<VALUE, HANDLER, MODULE extends IExtendedModule<VALUE,
             VALUE remain = PipeNetworkExpansions.route(pipeNetwork, world, this, pipePosition, handlerPosition,
                     value, preventOversending);
             if (this.getCount(remain) != this.getCount(value)) {
-                this.extract(handler,this.getCount(value) - this.getCount(remain), false);
+                this.extract(handler, this.getCount(value) - this.getCount(remain), false);
             }
         }
     }
@@ -65,7 +65,7 @@ public interface IPipeType<VALUE, HANDLER, MODULE extends IExtendedModule<VALUE,
     }
 
     default boolean canAccept(IModule module, ItemStack moduleStack, PipeTileEntity pipeTileEntity, VALUE value) {
-        MODULE moduleExtension = this.getModuleExtension(module);
+        IExtendedModule<VALUE, HANDLER> moduleExtension = this.getModuleExtension(module);
         if (moduleExtension != null) {
             return moduleExtension.canAccept(moduleStack, pipeTileEntity, value);
         } else {
@@ -75,7 +75,7 @@ public interface IPipeType<VALUE, HANDLER, MODULE extends IExtendedModule<VALUE,
 
     default int getMaxInsertion(IModule module, ItemStack moduleStack, PipeTileEntity pipeTileEntity, VALUE value,
                                 HANDLER handler) {
-        MODULE moduleExtension = this.getModuleExtension(module);
+        IExtendedModule<VALUE, HANDLER> moduleExtension = this.getModuleExtension(module);
         if (moduleExtension != null) {
             return moduleExtension.getMaxInsertion(moduleStack, pipeTileEntity, value, handler);
         } else {
