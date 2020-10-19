@@ -16,8 +16,8 @@ import xyz.brassgoggledcoders.prolificprettypipes.content.ProlificItems;
 import javax.annotation.Nullable;
 
 public class FluidPipeType implements IPipeType<FluidStack, IFluidHandler> {
-    public static final FluidPipeType INSTANCE = setup();
     public static final ResourceLocation TYPE = ProlificPrettyPipes.rl("fluid");
+    public static final FluidPipeType INSTANCE = setup();
 
     @Nullable
     @Override
@@ -41,10 +41,18 @@ public class FluidPipeType implements IPipeType<FluidStack, IFluidHandler> {
 
     @Override
     public FluidStack insert(IFluidHandler fluidHandler, FluidStack fluidStack, boolean simulate) {
-        int amountInsert = fluidHandler.fill(fluidStack, simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE);
-        FluidStack remainder = fluidStack.copy();
-        remainder.shrink(amountInsert);
-        return remainder;
+        if (this.getCount(fluidStack) != 0) {
+            int amountInsert = fluidHandler.fill(fluidStack, simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE);
+            if (amountInsert > 0) {
+                FluidStack remainder = fluidStack.copy();
+                remainder.shrink(amountInsert);
+                return remainder;
+            } else {
+                return fluidStack;
+            }
+        } else {
+            return FluidStack.EMPTY;
+        }
     }
 
     @Override
@@ -70,12 +78,16 @@ public class FluidPipeType implements IPipeType<FluidStack, IFluidHandler> {
 
     @Override
     public void setCount(FluidStack fluidStack, int count) {
-        fluidStack.setAmount(count);
+        if (!fluidStack.isEmpty()) {
+            fluidStack.setAmount(count);
+        }
     }
 
     @Override
     public void reduce(FluidStack fluidStack, int amount) {
-        fluidStack.shrink(amount);
+        if (!fluidStack.isEmpty()) {
+            fluidStack.shrink(amount);
+        }
     }
 
     @Override

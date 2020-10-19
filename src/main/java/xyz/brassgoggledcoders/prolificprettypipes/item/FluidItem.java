@@ -23,13 +23,11 @@ public class FluidItem extends Item {
         return itemStack;
     }
 
-    public static Fluid getFluidFromStack(ItemStack itemStack) {
+    public static FluidStack getFluidStackFromStack(ItemStack itemStack) {
         CompoundNBT fluidStackNBT = itemStack.getChildTag("fluidStack");
         if (fluidStackNBT != null) {
-            String fluidName = fluidStackNBT.getString("Fluid");
-            if (!fluidName.isEmpty()) {
-                return ForgeRegistries.FLUIDS.getValue(new ResourceLocation(fluidName));
-            }
+            fluidStackNBT.putInt("Amount", itemStack.getCount());
+            return FluidStack.loadFluidStackFromNBT(fluidStackNBT);
         }
         return null;
     }

@@ -14,7 +14,6 @@ import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.fluid.Fluid;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
@@ -24,6 +23,7 @@ import net.minecraft.util.math.vector.Vector3i;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.model.BakedItemModel;
 import net.minecraftforge.client.model.pipeline.BakedQuadBuilder;
+import net.minecraftforge.fluids.FluidStack;
 import xyz.brassgoggledcoders.prolificprettypipes.item.FluidItem;
 
 import javax.annotation.Nonnull;
@@ -31,10 +31,9 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 public class FluidModelItemOverrideList extends ItemOverrideList {
-    private final LoadingCache<Fluid, IBakedModel> cache;
+    private final LoadingCache<FluidStack, IBakedModel> cache;
 
     private final Function<RenderMaterial, TextureAtlasSprite> spriteGetter;
 
@@ -42,9 +41,9 @@ public class FluidModelItemOverrideList extends ItemOverrideList {
         this.spriteGetter = spriteGetter;
         this.cache = CacheBuilder.newBuilder()
                 .expireAfterAccess(60, TimeUnit.SECONDS)
-                .build(new CacheLoader<Fluid, IBakedModel>() {
+                .build(new CacheLoader<FluidStack, IBakedModel>() {
                     @Override
-                    public IBakedModel load(@Nonnull Fluid key) {
+                    public IBakedModel load(@Nonnull FluidStack key) {
                         return createFor(key);
                     }
                 });
@@ -54,7 +53,7 @@ public class FluidModelItemOverrideList extends ItemOverrideList {
     @ParametersAreNonnullByDefault
     public IBakedModel getOverrideModel(IBakedModel bakedModel, ItemStack itemStack, @Nullable ClientWorld clientWorld,
                                         @Nullable LivingEntity livingEntity) {
-        Fluid fluid = FluidItem.getFluidFromStack(itemStack);
+        FluidStack fluid = FluidItem.getFluidStackFromStack(itemStack);
         if (fluid != null) {
             return cache.getUnchecked(fluid);
         } else {
@@ -63,13 +62,25 @@ public class FluidModelItemOverrideList extends ItemOverrideList {
     }
 
     @Nonnull
-    private IBakedModel createFor(@Nonnull Fluid fluid) {
+    private IBakedModel createFor(@Nonnull FluidStack fluidStack) {
         TextureAtlasSprite fluidSprite = spriteGetter.apply(ForgeHooksClient.getBlockMaterial(
-                fluid.getAttributes().getStillTexture()));
+                fluidStack.getFluid().getAttributes().getStillTexture()));
+        int color = fluidStack.getFluid().getAttributes().getColor(fluidStack);
+        int luminosity = fluidStack.getFluid().getAttributes().getLuminosity(fluidStack);
+
+        float r = ((color >> 16) & 0xFF) / 255f; // red
+        float g = ((color >> 8) & 0xFF) / 255f; // green
+        float b = ((color) & 0xFF) / 255f; // blue
+        float a = ((color >> 24) & 0xFF) / 255f; // alpha
+        float[] colors = new float[]{r, g, b, a};
+
+        ImmutableList.Builder<BakedQuad> bakedQuadList = ImmutableList.builder();
+        for (Direction direction : Direction.values()) {
+            bakedQuadList.add(createQuadForSide(direction, fluidSprite, colors, luminosity));
+        }
+
         return new BakedItemModel(
-                Stream.of(Direction.values())
-                .map(direction -> createQuadForSide(direction, fluidSprite))
-                .collect(ImmutableList.toImmutableList()),
+                bakedQuadList.build(),
                 fluidSprite,
                 ImmutableMap.<ItemCameraTransforms.TransformType, TransformationMatrix>builder().build(),
                 new EmptyItemOverrides(),
@@ -78,10 +89,11 @@ public class FluidModelItemOverrideList extends ItemOverrideList {
         );
     }
 
-    private BakedQuad createQuadForSide(@Nonnull Direction side, TextureAtlasSprite fluidTexture) {
-        return createBakedQuad(DefaultVertexFormats.BLOCK, getDefaultVertices(side),
-                side, fluidTexture, new double[]{2, 2, 14, 14}, new float[]{1, 1, 1, 1},
-                side.getAxisDirection() == Direction.AxisDirection.NEGATIVE, new float[]{1, 1, 1, 1});
+    private BakedQuad createQuadForSide(@Nonnull Direction side, TextureAtlasSprite fluidTexture, float[] color,
+                                        int luminosity) {
+        return createBakedQuad(DefaultVertexFormats.BLOCK, this.getDefaultVertices(side), side, fluidTexture,
+                new double[]{0, 0, 16, 16}, color, side.getAxisDirection() == Direction.AxisDirection.NEGATIVE,
+                new float[]{1, 1, 1, 1}, luminosity);
     }
 
     private Vector3d[] getDefaultVertices(Direction facing) {
@@ -129,7 +141,7 @@ public class FluidModelItemOverrideList extends ItemOverrideList {
 
     public static BakedQuad createBakedQuad(VertexFormat format, Vector3d[] vertices, Direction facing,
                                             TextureAtlasSprite sprite, double[] uvs, float[] colour, boolean invert,
-                                            float[] alpha) {
+                                            float[] alpha, int luminosity) {
         BakedQuadBuilder builder = new BakedQuadBuilder(sprite);
         builder.setQuadOrientation(facing);
         builder.setApplyDiffuseLighting(true);
@@ -137,21 +149,22 @@ public class FluidModelItemOverrideList extends ItemOverrideList {
         Vector3d faceNormal = new Vector3d(normalInt.getX(), normalInt.getY(), normalInt.getZ());
         int vId = invert ? 3 : 0;
         int u = vId > 1 ? 2 : 0;
-        putVertexData(format, builder, vertices[vId], faceNormal, uvs[u], uvs[1], sprite, colour, alpha[vId]);
+        putVertexData(format, builder, vertices[vId], faceNormal, uvs[u], uvs[1], sprite, colour, alpha[vId], luminosity);
         vId = invert ? 2 : 1;
         u = vId > 1 ? 2 : 0;
-        putVertexData(format, builder, vertices[vId], faceNormal, uvs[u], uvs[3], sprite, colour, alpha[vId]);
+        putVertexData(format, builder, vertices[vId], faceNormal, uvs[u], uvs[3], sprite, colour, alpha[vId], luminosity);
         vId = invert ? 1 : 2;
         u = vId > 1 ? 2 : 0;
-        putVertexData(format, builder, vertices[vId], faceNormal, uvs[u], uvs[3], sprite, colour, alpha[vId]);
+        putVertexData(format, builder, vertices[vId], faceNormal, uvs[u], uvs[3], sprite, colour, alpha[vId], luminosity);
         vId = invert ? 0 : 3;
         u = vId > 1 ? 2 : 0;
-        putVertexData(format, builder, vertices[vId], faceNormal, uvs[u], uvs[1], sprite, colour, alpha[vId]);
+        putVertexData(format, builder, vertices[vId], faceNormal, uvs[u], uvs[1], sprite, colour, alpha[vId], luminosity);
         return builder.build();
     }
 
     public static void putVertexData(VertexFormat format, BakedQuadBuilder builder, Vector3d pos, Vector3d faceNormal,
-                                     double u, double v, TextureAtlasSprite sprite, float[] colour, float alpha) {
+                                     double u, double v, TextureAtlasSprite sprite, float[] colour, float alpha,
+                                     int luminosity) {
         for (int e = 0; e < format.getElements().size(); e++)
             switch (format.getElements().get(e).getUsage()) {
                 case POSITION:
@@ -169,9 +182,9 @@ public class FluidModelItemOverrideList extends ItemOverrideList {
                                     .getAtlasSpriteGetter(PlayerContainer.LOCATION_BLOCKS_TEXTURE)
                                     .apply(MissingTextureSprite.getLocation());
                         builder.put(e, sprite.getInterpolatedU(u), sprite.getInterpolatedV(v));
-                    } else
-                        //Lightmap UVs (0, 0 is "automatic")
-                        builder.put(e, 0, 0);
+                    } else {
+                        builder.put(e, (luminosity << 4) / 32768.0f, (luminosity << 4) / 32768.0f, 0f, 1f);
+                    }
                     break;
                 case NORMAL:
                     builder.put(e, (float) faceNormal.getX(), (float) faceNormal.getY(), (float) faceNormal.getZ());

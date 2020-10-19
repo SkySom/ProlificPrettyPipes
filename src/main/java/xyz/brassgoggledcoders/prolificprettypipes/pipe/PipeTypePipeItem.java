@@ -46,15 +46,19 @@ public class PipeTypePipeItem<VALUE, HANDLER> extends PipeItem {
 
     @Override
     protected ItemStack store(PipeTileEntity currPipe) {
-        Direction dir = Utility.getDirectionFromOffset(this.destInventory, this.getDestPipe());
-        HANDLER handler = currPipe.getNeighborCap(dir, this.getPipeType().getCapability());
-        if (handler != null) {
-            VALUE inserted = this.getPipeType().insert(handler, this.getValue(), true);
-            int count = this.getPipeType().getCount(inserted);
-            this.getPipeType().reduce(this.getValue(), count);
-            this.stack.shrink(count);
+        if (this.getPipeType().getCount(this.getValue()) != 0) {
+            Direction dir = Utility.getDirectionFromOffset(this.destInventory, this.getDestPipe());
+            HANDLER handler = currPipe.getNeighborCap(dir, this.getPipeType().getCapability());
+            if (handler != null) {
+                VALUE remaining = this.getPipeType().insert(handler, this.getValue(), false);
+                int count = this.getPipeType().getCount(remaining);
+                this.getPipeType().setCount(this.getValue(), count);
+                this.stack.setCount(count);
+            }
+            return this.stack;
+        } else {
+            return ItemStack.EMPTY;
         }
-        return this.stack;
     }
 
     @Override
