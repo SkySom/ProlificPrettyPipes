@@ -100,40 +100,40 @@ public class FluidModelItemOverrideList extends ItemOverrideList {
         Vector3d[] vertices = new Vector3d[4];
         switch (facing) {
             case DOWN:
-                vertices[0] = new Vector3d(0.125F, 0, 0.125F);
-                vertices[1] = new Vector3d(0.125F, 0, 0.875F);
-                vertices[2] = new Vector3d(0.875F, 0, 0.875F);
-                vertices[3] = new Vector3d(0.875F, 0, 0.125F);
+                vertices[0] = new Vector3d(0.0F, 0, 0.0F);
+                vertices[1] = new Vector3d(0.0F, 0, 1.0F);
+                vertices[2] = new Vector3d(1.0F, 0, 1.0F);
+                vertices[3] = new Vector3d(1.0F, 0, 0.0F);
                 break;
             case UP:
-                vertices[0] = new Vector3d(0.125F, 1, 0.125F);
-                vertices[1] = new Vector3d(0.125F, 1, 0.875F);
-                vertices[2] = new Vector3d(0.875F, 1, 0.875F);
-                vertices[3] = new Vector3d(0.875F, 1, 0.125F);
+                vertices[0] = new Vector3d(0.0F, 1, 0.0F);
+                vertices[1] = new Vector3d(0.0F, 1, 1.0F);
+                vertices[2] = new Vector3d(1.0F, 1, 1.0F);
+                vertices[3] = new Vector3d(1.0F, 1, 0.0F);
                 break;
             case NORTH:
-                vertices[0] = new Vector3d(0.125F, 0.875F, 0);
-                vertices[1] = new Vector3d(0.125F, 0.125F, 0);
-                vertices[2] = new Vector3d(0.875F, 0.125F, 0);
-                vertices[3] = new Vector3d(0.875F, 0.875F, 0);
+                vertices[0] = new Vector3d(0.0F, 1.0F, 0);
+                vertices[1] = new Vector3d(0.0F, 0.0F, 0);
+                vertices[2] = new Vector3d(1.0F, 0.0F, 0);
+                vertices[3] = new Vector3d(1.0F, 1.0F, 0);
                 break;
             case EAST:
-                vertices[0] = new Vector3d(1, 0.875F, 0.875F);
-                vertices[1] = new Vector3d(1, 0.125F, 0.875F);
-                vertices[2] = new Vector3d(1, 0.125F, 0.125F);
-                vertices[3] = new Vector3d(1, 0.875F, 0.125F);
+                vertices[0] = new Vector3d(1, 1.0F, 1.0F);
+                vertices[1] = new Vector3d(1, 0.0F, 1.0F);
+                vertices[2] = new Vector3d(1, 0.0F, 0.0F);
+                vertices[3] = new Vector3d(1, 1.0F, 0.0F);
                 break;
             case SOUTH:
-                vertices[0] = new Vector3d(0.125F, 0.875F, 1);
-                vertices[1] = new Vector3d(0.125F, 0.125F, 1);
-                vertices[2] = new Vector3d(0.875F, 0.125F, 1);
-                vertices[3] = new Vector3d(0.875F, 0.875F, 1);
+                vertices[0] = new Vector3d(0.0F, 1.0F, 1);
+                vertices[1] = new Vector3d(0.0F, 0.0F, 1);
+                vertices[2] = new Vector3d(1.0F, 0.0F, 1);
+                vertices[3] = new Vector3d(1.0F, 1.0F, 1);
                 break;
             case WEST:
-                vertices[0] = new Vector3d(0, 0.875F, 0.875F);
-                vertices[1] = new Vector3d(0, 0.125F, 0.875F);
-                vertices[2] = new Vector3d(0, 0.125F, 0.125F);
-                vertices[3] = new Vector3d(0, 0.875F, 0.125F);
+                vertices[0] = new Vector3d(0, 1.0F, 1.0F);
+                vertices[1] = new Vector3d(0, 0.0F, 1.0F);
+                vertices[2] = new Vector3d(0, 0.0F, 0.0F);
+                vertices[3] = new Vector3d(0, 1.0F, 0.0F);
                 break;
         }
         return vertices;
